@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium To-Do | Organiza tu día</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-decor">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+    </div>
+
+    <main class="app-container">
+        <header>
+            <h1>Mis Tareas</h1>
+            <p id="date-display"></p>
+        </header>
+
+        <section class="input-section">
+            <div class="input-wrapper">
+                <input type="text" id="task-input" placeholder="¿Qué tienes pendiente hoy?" autocomplete="off">
+                <select id="category-select">
+                    <option value="trabajo">💼 Trabajo</option>
+                    <option value="estudio">📚 Estudio</option>
+                    <option value="hogar">🏠 Hogar</option>
+                </select>
+                <button id="add-task-btn" aria-label="Añadir tarea">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <section class="filter-section">
+            <button class="filter-btn active" data-filter="all">Todas</button>
+            <button class="filter-btn" data-filter="trabajo">Trabajo</button>
+            <button class="filter-btn" data-filter="estudio">Estudio</button>
+            <button class="filter-btn" data-filter="hogar">Hogar</button>
+        </section>
+
+        <section class="list-section">
+            <ul id="task-list">
+                <!-- Las tareas se añadirán aquí dinámicamente -->
+            </ul>
+        </section>
+
+        <footer class="stats">
+            <span id="pending-count">0 tareas pendientes</span>
+        </footer>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
