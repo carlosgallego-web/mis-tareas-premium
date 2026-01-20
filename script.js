@@ -1,6 +1,7 @@
 const SUPABASE_URL = 'https://liubjyhmzolscspmnhqc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_DD319R1bIG0NXFf53SwMfw_rCi6yFLP';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Cambiamos el nombre a supabaseClient para evitar conflicto con la librería
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const taskInput = document.getElementById('task-input');
 const categorySelect = document.getElementById('category-select');
@@ -13,20 +14,20 @@ const filterBtns = document.querySelectorAll('.filter-btn');
 let tasks = [];
 let currentFilter = 'all';
 
-// Initialize
+// Inicialización inmediata
 init();
 
 async function init() {
-    // Display Current Date
+    // Mostrar fecha actual
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     if (dateDisplay) {
         dateDisplay.textContent = new Date().toLocaleDateString('es-ES', options);
     }
 
-    // Initial load from Supabase
+    // Cargar tareas iniciales desde Supabase
     await fetchTasks();
 
-    // Add Event Listeners
+    // Configurar escuchadores de eventos
     if (addTaskBtn) {
         addTaskBtn.addEventListener('click', addTask);
     }
@@ -48,12 +49,12 @@ async function init() {
 }
 
 async function fetchTasks() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('tasks')
         .select('*');
 
     if (error) {
-        console.error('Error fetching tasks:', error);
+        console.error('Error al obtener tareas:', error);
     } else {
         tasks = data || [];
     }
@@ -71,13 +72,13 @@ async function addTask() {
         completed: false
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('tasks')
         .insert([newTask])
         .select();
 
     if (error) {
-        console.error('Error adding task:', error);
+        console.error('Error al añadir tarea:', error);
     } else {
         tasks.unshift(data[0]);
     }
@@ -87,13 +88,13 @@ async function addTask() {
 }
 
 async function toggleTask(id, currentStatus) {
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('tasks')
         .update({ completed: !currentStatus })
         .eq('id', id);
 
     if (error) {
-        console.error('Error toggling task:', error);
+        console.error('Error al cambiar estado:', error);
     } else {
         tasks = tasks.map(task =>
             task.id === id ? { ...task, completed: !task.completed } : task
@@ -105,13 +106,13 @@ async function toggleTask(id, currentStatus) {
 async function deleteTask(id, element) {
     element.classList.add('removing');
     setTimeout(async () => {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('tasks')
             .delete()
             .eq('id', id);
 
         if (error) {
-            console.error('Error deleting task:', error);
+            console.error('Error al eliminar tarea:', error);
         } else {
             tasks = tasks.filter(task => task.id !== id);
             renderTasks();
