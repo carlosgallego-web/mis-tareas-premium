@@ -49,14 +49,20 @@ async function init() {
 }
 
 async function fetchTasks() {
-    const { data, error } = await supabaseClient
-        .from('tasks')
-        .select('*');
+    try {
+        const { data, error } = await supabaseClient
+            .from('tasks')
+            .select('*')
+            .order('id', { ascending: false });
 
-    if (error) {
-        console.error('Error al obtener tareas:', error);
-    } else {
-        tasks = data || [];
+        if (error) {
+            console.error('Error al obtener tareas (Supabase):', error.message, error.details);
+            // No alertamos en el fetch inicial para no molestar si solo es el RLS
+        } else {
+            tasks = data || [];
+        }
+    } catch (err) {
+        console.error('Error inesperado al obtener tareas:', err);
     }
     renderTasks();
 }
@@ -72,50 +78,71 @@ async function addTask() {
         completed: false
     };
 
-    const { data, error } = await supabaseClient
-        .from('tasks')
-        .insert([newTask])
-        .select();
+    try {
+        const { data, error } = await supabaseClient
+            .from('tasks')
+            .insert([newTask])
+            .select();
 
-    if (error) {
-        console.error('Error al añadir tarea:', error);
-    } else {
-        tasks.unshift(data[0]);
+        if (error) {
+            console.error('Error al añadir tarea (Supabase):', error.message, error.details);
+            alert('No se pudo guardar la tarea en la nube. Verifica tu conexión o permisos (RLS).');
+        } else if (data && data.length > 0) {
+            tasks.unshift(data[0]);
+            taskInput.value = '';
+            renderTasks();
+        } else {
+            console.warn('Supabase no devolvió datos tras la inserción.');
+            await fetchTasks(); // Reintentar cargar por si acaso
+        }
+    } catch (err) {
+        console.error('Error inesperado al añadir tarea:', err);
+        alert('Ocurrió un error inesperado al intentar guardar la tarea.');
     }
-
-    renderTasks();
-    taskInput.value = '';
 }
 
 async function toggleTask(id, currentStatus) {
-    const { error } = await supabaseClient
-        .from('tasks')
-        .update({ completed: !currentStatus })
-        .eq('id', id);
+    try {
+        const { error } = await supabaseClient
+            .from('tasks')
+            .update({ completed: !currentStatus })
+            .eq('id', id);
 
-    if (error) {
-        console.error('Error al cambiar estado:', error);
-    } else {
-        tasks = tasks.map(task =>
-            task.id === id ? { ...task, completed: !task.completed } : task
-        );
-        renderTasks();
+        if (error) {
+            console.error('Error al cambiar estado (Supabase):', error.message, error.details);
+            alert('No se pudo actualizar la tarea en la nube.');
+        } else {
+            tasks = tasks.map(task =>
+                task.id === id ? { ...task, completed: !task.completed } : task
+            );
+            renderTasks();
+        }
+    } catch (err) {
+        console.error('Error inesperado al cambiar estado:', err);
     }
 }
 
 async function deleteTask(id, element) {
+    if (!confirm('¿Estás seguro de eliminar esta tarea?')) return;
+
     element.classList.add('removing');
     setTimeout(async () => {
-        const { error } = await supabaseClient
-            .from('tasks')
-            .delete()
-            .eq('id', id);
+        try {
+            const { error } = await supabaseClient
+                .from('tasks')
+                .delete()
+                .eq('id', id);
 
-        if (error) {
-            console.error('Error al eliminar tarea:', error);
-        } else {
-            tasks = tasks.filter(task => task.id !== id);
-            renderTasks();
+            if (error) {
+                console.error('Error al eliminar tarea (Supabase):', error.message, error.details);
+                alert('No se pudo eliminar la tarea de la nube.');
+                element.classList.remove('removing'); // Revertir visualmente
+            } else {
+                tasks = tasks.filter(task => task.id !== id);
+                renderTasks();
+            }
+        } catch (err) {
+            console.error('Error inesperado al eliminar tarea:', err);
         }
     }, 300);
 }
